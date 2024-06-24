@@ -32,19 +32,21 @@ phases:
       - >
         aws ecs register-task-definition \
           --family github-lambda-ecs-demo \
-          --container-definitions "[
+          --container-definitions '[
             {
-              \"name\": \"github-lambda-ecs-demo\",
-              \"image\": \"033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest\",
-              \"memory\": 512,
-              \"cpu\": 256,
-              \"essential\": true
+              "name": "github-lambda-ecs-demo",
+              "image": "033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest",
+              "memory": 512,
+              "cpu": 256,
+              "essential": true
             }
-          ]"
+          ]'
       - echo "Updating ECS service to use the new task definition..."
       - >
-        aws ecs update-service --cluster github-lambda-ecs-demo --service github-lambda-ecs-demo-service --force-new-deployment
-
+        aws ecs update-service \
+          --cluster github-lambda-ecs-demo-service \
+          --service github-lambda-ecs-demo-service \
+          --force-new-deployment
 artifacts:
   files:
     - function.zip
