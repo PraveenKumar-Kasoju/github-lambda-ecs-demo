@@ -9,7 +9,7 @@ def lambda_handler(event, context):
     df = pd.DataFrame([data])
     
     return {
-        'statusCode': 300,
+        'statusCode': 200,
         'body': df.to_json()
     }
 
