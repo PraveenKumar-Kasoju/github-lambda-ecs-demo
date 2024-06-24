@@ -1,87 +1,32 @@
 {
-    "pipeline": {
-      "name": "github-lambda-ecs-demo-pipeline",
-      "roleArn": "arn:aws:iam::<account-id>:role/<pipeline-role>",
-      "artifactStore": {
-        "type": "S3",
-        "location": "github-lambda-ecs-demo"
-      },
-      "stages": [
-        {
-          "name": "Source",
-          "actions": [
-            {
-              "name": "Source",
-              "actionTypeId": {
-                "category": "Source",
-                "owner": "AWS",
-                "provider": "CodeCommit",
-                "version": "1"
-              },
-              "outputArtifacts": [
-                {
-                  "name": "sourceArtifact"
-                }
-              ],
-              "configuration": {
-                "RepositoryName": "github-lambda-ecs-demo",
-                "BranchName": "main"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Build",
-          "actions": [
-            {
-              "name": "Build",
-              "actionTypeId": {
-                "category": "Build",
-                "owner": "AWS",
-                "provider": "CodeBuild",
-                "version": "1"
-              },
-              "inputArtifacts": [
-                {
-                  "name": "sourceArtifact"
-                }
-              ],
-              "outputArtifacts": [
-                {
-                  "name": "buildArtifact"
-                }
-              ],
-              "configuration": {
-                "ProjectName": "github-lambda-ecs-demo"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Deploy",
-          "actions": [
-            {
-              "name": "DeployECS",
-              "actionTypeId": {
-                "category": "Deploy",
-                "owner": "AWS",
-                "provider": "ECS",
-                "version": "1"
-              },
-              "inputArtifacts": [
-                {
-                  "name": "buildArtifact"
-                }
-              ],
-              "configuration": {
-                "ClusterName": "github-lambda-ecs-demo",
-                "ServiceName": "github-lambda-ecs-demo",
-                "FileName": "imagedefinitions.json"
-              }
-            }
-          ]
+    "family": "github-lambda-ecs-demo",
+    "containerDefinitions": [
+      {
+        "name": "github-lambda-ecs-demo",
+        "image": "033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest",
+        "cpu": 256,
+        "memoryReservation": 512,
+        "essential": true,
+        "portMappings": [
+          {
+            "containerPort": 80,
+            "hostPort": 80
+          }
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/github-lambda-ecs-demo",
+            "awslogs-region": "us-east-1",
+            "awslogs-stream-prefix": "ecs"
+          }
         }
-      ]
-    }
+      }
+    ],
+    "networkMode": "bridge",
+    "executionRoleArn": "arn:aws:iam::033914078355:role/service-role/ecs-codebuild-lambda-role",
+    "taskRoleArn": "arn:aws:iam::033914078355:role/service-role/ecs-codebuild-lambda-role",
+    "cpu": "256",
+    "memory": "512"
   }
   

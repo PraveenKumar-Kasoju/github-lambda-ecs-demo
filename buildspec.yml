@@ -42,7 +42,8 @@ phases:
             }
           ]"
       - echo "Updating ECS service to use the new task definition..."
-      - aws ecs update-service --cluster github-lambda-ecs-demo --service github-lambda-ecs-demo-service --force-new-deployment
+      - >
+        aws ecs update-service --cluster github-lambda-ecs-demo --service github-lambda-ecs-demo-service --force-new-deployment
 
 artifacts:
   files:
