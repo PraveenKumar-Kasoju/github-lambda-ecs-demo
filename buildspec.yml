@@ -8,6 +8,7 @@ phases:
       - echo "Installing dependencies..."
       - pip install --upgrade pip
       - pip install virtualenv
+
   pre_build:
     commands:
       - echo "Setting up virtual environment..."
@@ -19,6 +20,7 @@ phases:
       - pip install -r requirements.txt -t python/lib/python3.10/site-packages/
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 033914078355.dkr.ecr.us-east-1.amazonaws.com
+
   build:
     commands:
       - echo "Building the Docker image..."
@@ -26,6 +28,7 @@ phases:
       - docker tag github-lambda-ecs-demo:latest 033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest
       - echo "Pushing the Docker image to ECR..."
       - docker push 033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest
+
   post_build:
     commands:
       - echo "Registering new task definition..."
@@ -47,7 +50,13 @@ phases:
           --cluster github-lambda-ecs-demo-service \
           --service github-lambda-ecs-demo-service \
           --force-new-deployment
+
 artifacts:
   files:
     - function.zip
     - layer.zip
+  discard-paths: no
+  base-directory: ./
+  name: github-lambda-ecs-demo-service-artifacts
+  bucket-name: github-lambda-ecs-demo
+  path: /artifacts
