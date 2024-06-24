@@ -4,25 +4,47 @@ phases:
   install:
     runtime-versions:
       python: 3.10
+    commands:
+      - echo "Installing dependencies..."
+      - pip install --upgrade pip
+      - pip install virtualenv
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
-      - REPOSITORY_URI=<account-id>.dkr.ecr.<region>.amazonaws.com/github-lambda-ecs-demo
-      - echo $REPOSITORY_URI
+      - echo "Setting up virtual environment..."
+      - python -m venv venv
+      - source venv/bin/activate
+      - echo "Installing package dependencies..."
+      - mkdir -p python/lib/python3.10/site-packages
+      - echo "pandas" > requirements.txt
+      - pip install -r requirements.txt -t python/lib/python3.10/site-packages/
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 033914078355.dkr.ecr.us-east-1.amazonaws.com
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
+      - echo "Building the Docker image..."
       - docker build -t github-lambda-ecs-demo .
-      - docker tag github-lambda-ecs-demo:latest $REPOSITORY_URI:latest
+      - docker tag github-lambda-ecs-demo:latest 033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest
+      - echo "Pushing the Docker image to ECR..."
+      - docker push 033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest
   post_build:
     commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push $REPOSITORY_URI:latest
-      - echo Writing image definitions file...
-      - printf '[{"name":"github-lambda-ecs-demo","imageUri":"%s"}]' $REPOSITORY_URI:latest > imagedefinitions.json
+      - echo "Registering new task definition..."
+      - >
+        aws ecs register-task-definition \
+          --family github-lambda-ecs-demo \
+          --container-definitions "[
+            {
+              \"name\": \"github-lambda-ecs-demo\",
+              \"image\": \"033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest\",
+              \"memory\": 512,
+              \"cpu\": 256,
+              \"essential\": true
+            }
+          ]"
+      - echo "Updating ECS service to use the new task definition..."
+      - aws ecs update-service --cluster github-lambda-ecs-demo --service github-lambda-ecs-demo-service --force-new-deployment
+
 artifacts:
   files:
-    - imagedefinitions.json
+    - function.zip
+    - layer.zip
