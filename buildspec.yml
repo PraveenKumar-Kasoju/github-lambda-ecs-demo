@@ -50,6 +50,11 @@ phases:
           --cluster github-lambda-ecs-demo-service \
           --service github-lambda-ecs-demo-service \
           --force-new-deployment
+      - echo "Deploying Lambda function..."
+      - >
+        aws lambda update-function-code \
+          --function-name github-lambda-ecs-demo \
+          --image-uri 033914078355.dkr.ecr.us-east-1.amazonaws.com/github-lambda-ecs-demo:latest
 
 artifacts:
   files:
